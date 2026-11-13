@@ -93,7 +93,7 @@ with st.sidebar:
     groq_api_key = st.text_input("🔑 Groq API-Key:", type="password", placeholder="gsk_...")
     
     st.markdown("---")
-    selected_model = st.selectbox("🤖 KI-Modell:", ["llama3-70b-8192", "llama3-8b-8192"])
+    selected_model = st.selectbox("🤖 KI-Modell:", ["llama-3.1-70b-versatile", "llama-3.1-8b-instant"])
     mode = st.selectbox("🧠 Lernmodus:", ["Pädagogischer Mentor (Tipps)", "Direkter Debugger", "Code Optimizer"])
     level = st.select_slider("📈 Schwierigkeitsgrad:", options=["Anfänger", "Fortgeschritten", "Experte"])
     

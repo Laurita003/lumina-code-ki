@@ -2,7 +2,7 @@
 
 Ein intelligenter, KI-gestützter Code-Mentor für tiefe Einblicke und echten Lerneffekt.
 
-Live Demo: https://laurita003.github.io/lumina-code-ki/
+Live Demo: [https://laurita003.github.io/lumina-code-ki/](https://lumina-code-ki-blzuvybngvappdnuwgyypna.streamlit.app/)
 
 ## So funktioniert's
 

@@ -79,6 +79,10 @@ st.markdown("""
 # --- INITIALISIERUNG DES CHAT-VERLAUFS ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "reflection_done" not in st.session_state:
+    st.session_state.reflection_done = False
+if "final_feedback" not in st.session_state:
+    st.session_state.final_feedback = ""
 
 # --- SEITENLEISTE (SIDEBAR) ---
 with st.sidebar:
@@ -89,14 +93,15 @@ with st.sidebar:
     groq_api_key = st.text_input("🔑 Groq API-Key:", type="password", placeholder="gsk_...")
     
     st.markdown("---")
-    # Modell-Auswahl
     selected_model = st.selectbox("🤖 KI-Modell:", ["llama3-70b-8192", "llama3-8b-8192"])
     mode = st.selectbox("🧠 Lernmodus:", ["Pädagogischer Mentor (Tipps)", "Direkter Debugger", "Code Optimizer"])
     level = st.select_slider("📈 Schwierigkeitsgrad:", options=["Anfänger", "Fortgeschritten", "Experte"])
     
     st.markdown("---")
-    if st.button("🗑️ Chat zurücksetzen"):
+    if st.button("🗑️ Session zurücksetzen"):
         st.session_state.messages = []
+        st.session_state.reflection_done = False
+        st.session_state.final_feedback = ""
         st.rerun()
         
     st.markdown("### 🚀 Systemstatus")
@@ -118,9 +123,9 @@ col_left, col_right = st.columns([1, 1], gap="large")
 
 with col_left:
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.markdown("### 💻 Quellcode Eingabe")
-    language = st.selectbox("Programmiersprache:", ["Python", "Java", "JavaScript", "C++", "TypeScript"])
-    user_code = st.text_area("Füge deinen Code hier ein:", height=300, placeholder="# Beispiel:\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)")
+    st.markdown("### 💻 Quellcode & Abfrage Eingabe")
+    language = st.selectbox("Programmiersprache / Abfragesprache:", ["Python", "SQL", "C", "C++", "Java", "JavaScript", "TypeScript"])
+    user_code = st.text_area("Füge deinen Code oder deine SQL-Abfrage hier ein:", height=300, placeholder="-- Beispiel SQL:\nSELECT name, email FROM users WHERE active = 1;")
     
     analyze_btn = st.button("Code analysieren & verstehen 🚀")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -129,7 +134,6 @@ with col_right:
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.markdown("### 🎯 KI-Analyse & Interaktiver Chat")
     
-    # Wenn der Analyse-Button geklickt wird, Initialanalyse starten
     if analyze_btn:
         if not groq_api_key:
             st.error("⚠️ Bitte gib zuerst deinen Groq API-Key in der Seitenleiste ein!")
@@ -142,18 +146,19 @@ with col_right:
                 with st.spinner("✨ Lumina KI analysiert den Code..."):
                     system_prompt = f"""
                     Du bist 'Lumina Code KI', ein pädagogischer Code-Mentor. 
-                    Dein Ziel ist es, dem Schüler ({level}) zu helfen, seinen {language}-Code im Modus '{mode}' zu verstehen, 
+                    Dein Ziel ist es, dem Schüler ({level}) zu helfen, seinen {language}-Code bzw. seine Abfrage im Modus '{mode}' zu verstehen, 
                     ohne ihm direkt die fertige Lösung auf dem Silbertablett zu servieren. Gib konstruktives Feedback, 
-                    erkläre Logikfehler und stelle Denkanstöße. Antworte strukturiert auf Deutsch.
+                    erkläre Logikfehler oder Optimierungsmöglichkeiten und stelle Denkanstöße. Antworte strukturiert auf Deutsch.
                     """
                     
                     initial_message = f"Analysiere diesen Code:\n\n{user_code}"
                     
-                    # Verlauf für die neue Analyse zurücksetzen
                     st.session_state.messages = [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": initial_message}
                     ]
+                    st.session_state.reflection_done = False
+                    st.session_state.final_feedback = ""
                     
                     chat_completion = client.chat.completions.create(
                         messages=st.session_state.messages,
@@ -177,8 +182,8 @@ with col_right:
                 with st.chat_message("user", avatar="👤"):
                     st.markdown(message["content"])
                     
-        # Eingabefeld für Folgefragen (Chat-Verlauf)
-        if groq_api_key:
+        # Eingabefeld für Folgefragen
+        if groq_api_key and not st.session_state.reflection_done:
             if follow_up := st.chat_input("Stelle eine Frage zum Code oder zur Analyse..."):
                 st.session_state.messages.append({"role": "user", "content": follow_up})
                 with st.chat_message("user", avatar="👤"):
@@ -198,8 +203,46 @@ with col_right:
                             st.markdown(ai_response)
                 except Exception as e:
                     st.error(f"Ein Fehler ist aufgetreten: {e}")
+
+        # --- LERNREFLEXION & ABSCHLUSS ---
+        st.markdown("---")
+        st.markdown("### 📝 Lernreflexion & Abschluss")
+        user_reflection = st.text_area("Fasse in eigenen Worten zusammen, was du gelernt hast:", placeholder="Heute habe ich gelernt, dass...", key="reflection_input")
+        
+        if st.button("Reflexion abschicken & Abschlusswort erhalten ✨"):
+            if not user_reflection.strip():
+                st.warning("⚠️ Bitte schreibe kurz, was du gelernt hast.")
+            else:
+                try:
+                    client = Groq(api_key=groq_api_key)
+                    with st.spinner("✨ Lumina formuliert das Abschlusswort..."):
+                        reflection_prompt = f"""
+                        Der Schüler hat gelernt und folgende Zusammenfassung geschrieben: '{user_reflection}'.
+                        Lobe den Schüler, bewerte kurz seine Einsicht und gib ihm ein motivierendes, professionelles Abschlusswort als Code-Mentor auf Deutsch.
+                        """
+                        response = client.chat.completions.create(
+                            messages=[
+                                {"role": "system", "content": "Du bist ein motivierender, pädagogischer Code-Mentor."},
+                                {"role": "user", "content": reflection_prompt}
+                            ],
+                            model=selected_model,
+                            temperature=0.4,
+                        )
+                        st.session_state.final_feedback = response.choices[0].message.content
+                        st.session_state.reflection_done = True
+                except Exception as e:
+                    st.error(f"Ein Fehler ist aufgetreten: {e}")
+                    
+        if st.session_state.reflection_done and st.session_state.final_feedback:
+            st.success("🎉 Hervorragende Arbeit! Hier ist dein Mentor-Abschlusswort:")
+            st.markdown(f"""
+                <div style='background: rgba(168, 85, 247, 0.1); border-left: 4px solid #c084fc; padding: 15px; border-radius: 8px; margin-top: 10px;'>
+                    {st.session_state.final_feedback}
+                </div>
+            """, unsafe_allow_html=True)
+
     else:
-        st.info("👈 Trage deinen API-Key ein, füge links deinen Code ein und klicke auf 'Code analysieren & verstehen'. Danach kannst du hier interaktive Fragen stellen!")
+        st.info("👈 Trage deinen API-Key ein, füge links deinen Code ein und klicke auf 'Code analysieren & verstehen'.")
 
     st.markdown('</div>', unsafe_allow_html=True)
 

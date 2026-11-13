@@ -76,19 +76,29 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# --- INITIALISIERUNG DES CHAT-VERLAUFS ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 # --- SEITENLEISTE (SIDEBAR) ---
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; color: #a5b4fc;'>⚡ Lumina Control</h2>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # Eingabe des API-Keys direkt in der Benutzeroberfläche
+    # API-Key Eingabe
     groq_api_key = st.text_input("🔑 Groq API-Key:", type="password", placeholder="gsk_...")
     
     st.markdown("---")
+    # Modell-Auswahl
+    selected_model = st.selectbox("🤖 KI-Modell:", ["llama3-70b-8192", "llama3-8b-8192"])
     mode = st.selectbox("🧠 Lernmodus:", ["Pädagogischer Mentor (Tipps)", "Direkter Debugger", "Code Optimizer"])
     level = st.select_slider("📈 Schwierigkeitsgrad:", options=["Anfänger", "Fortgeschritten", "Experte"])
     
     st.markdown("---")
+    if st.button("🗑️ Chat zurücksetzen"):
+        st.session_state.messages = []
+        st.rerun()
+        
     st.markdown("### 🚀 Systemstatus")
     if groq_api_key:
         st.success("API-Key erkannt & bereit.")
@@ -111,14 +121,15 @@ with col_left:
     st.markdown("### 💻 Quellcode Eingabe")
     language = st.selectbox("Programmiersprache:", ["Python", "Java", "JavaScript", "C++", "TypeScript"])
     user_code = st.text_area("Füge deinen Code hier ein:", height=300, placeholder="# Beispiel:\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)")
+    
+    analyze_btn = st.button("Code analysieren & verstehen 🚀")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_right:
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.markdown("### 🎯 KI-Analyse & Feedback")
+    st.markdown("### 🎯 KI-Analyse & Interaktiver Chat")
     
-    analyze_btn = st.button("Code analysieren & verstehen 🚀")
-    
+    # Wenn der Analyse-Button geklickt wird, Initialanalyse starten
     if analyze_btn:
         if not groq_api_key:
             st.error("⚠️ Bitte gib zuerst deinen Groq API-Key in der Seitenleiste ein!")
@@ -126,11 +137,9 @@ with col_right:
             st.warning("⚠️ Bitte gib zuerst etwas Code ein!")
         else:
             try:
-                # Initialisierung des Groq-Clients mit dem vom Benutzer eingegebenen Key
                 client = Groq(api_key=groq_api_key)
                 
-                with st.spinner("✨ Lumina KI analysiert den Code mit Llama 3..."):
-                    # System-Prompt für den pädagogischen Ansatz
+                with st.spinner("✨ Lumina KI analysiert den Code..."):
                     system_prompt = f"""
                     Du bist 'Lumina Code KI', ein pädagogischer Code-Mentor. 
                     Dein Ziel ist es, dem Schüler ({level}) zu helfen, seinen {language}-Code im Modus '{mode}' zu verstehen, 
@@ -138,26 +147,60 @@ with col_right:
                     erkläre Logikfehler und stelle Denkanstöße. Antworte strukturiert auf Deutsch.
                     """
                     
+                    initial_message = f"Analysiere diesen Code:\n\n{user_code}"
+                    
+                    # Verlauf für die neue Analyse zurücksetzen
+                    st.session_state.messages = [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": initial_message}
+                    ]
+                    
                     chat_completion = client.chat.completions.create(
-                        messages=[
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": f"Analysiere diesen Code:\n\n{user_code}"}
-                        ],
-                        model="llama3-70b-8192", # Ultraschnelles und leistungsstarkes Modell
+                        messages=st.session_state.messages,
+                        model=selected_model,
                         temperature=0.3,
                     )
                     
                     ai_response = chat_completion.choices[0].message.content
-                    
-                    # Anzeige der KI-Antwort
-                    st.markdown("### 🔍 Analyse-Ergebnis")
-                    st.markdown(ai_response)
+                    st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     
             except Exception as e:
                 st.error(f"Ein Fehler ist aufgetreten: {e}")
+
+    # Anzeige des Chat-Verlaufs
+    if len(st.session_state.messages) > 1:
+        for message in st.session_state.messages:
+            if message["role"] == "assistant":
+                with st.chat_message("assistant", avatar="✨"):
+                    st.markdown(message["content"])
+            elif message["role"] == "user" and message["content"] != f"Analysiere diesen Code:\n\n{user_code}":
+                with st.chat_message("user", avatar="👤"):
+                    st.markdown(message["content"])
+                    
+        # Eingabefeld für Folgefragen (Chat-Verlauf)
+        if groq_api_key:
+            if follow_up := st.chat_input("Stelle eine Frage zum Code oder zur Analyse..."):
+                st.session_state.messages.append({"role": "user", "content": follow_up})
+                with st.chat_message("user", avatar="👤"):
+                    st.markdown(follow_up)
+                    
+                try:
+                    client = Groq(api_key=groq_api_key)
+                    with st.spinner("✨ Lumina KI denkt nach..."):
+                        chat_completion = client.chat.completions.create(
+                            messages=st.session_state.messages,
+                            model=selected_model,
+                            temperature=0.3,
+                        )
+                        ai_response = chat_completion.choices[0].message.content
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        with st.chat_message("assistant", avatar="✨"):
+                            st.markdown(ai_response)
+                except Exception as e:
+                    st.error(f"Ein Fehler ist aufgetreten: {e}")
     else:
-        st.info("👈 Trage deinen API-Key links ein, füge deinen Code hinzu und starte die Analyse.")
-        
+        st.info("👈 Trage deinen API-Key ein, füge links deinen Code ein und klicke auf 'Code analysieren & verstehen'. Danach kannst du hier interaktive Fragen stellen!")
+
     st.markdown('</div>', unsafe_allow_html=True)
 
 # --- FUSSTEXT ---

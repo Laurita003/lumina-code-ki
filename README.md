@@ -2,10 +2,6 @@
 
 Ein intelligenter, KI-gestützter Code-Mentor für tiefe Einblicke, interaktives Lernen und echten Lerneffekt, entwickelt mit Python, Streamlit und der Groq API.
 
-Live Demo: # Lumina Code KI
-
-Ein intelligenter, KI-gestützter Code-Mentor für tiefe Einblicke, interaktives Lernen und echten Lerneffekt, entwickelt mit Python, Streamlit und der Groq API.
-
 Live Demo: https://lumina-code-ki-blzuvybrgvuappdnuwgypna.streamlit.app
 
 ## So funktioniert's

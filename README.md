@@ -1,43 +1,43 @@
 # Lumina Code KI
 
-Ein intelligenter, KI-gestützter Code-Mentor für tiefe Einblicke und echten Lerneffekt.
+Ein intelligenter, KI-gestützter Code-Mentor für tiefe Einblicke, interaktives Lernen und echten Lerneffekt, entwickelt mit Python, Streamlit und der Groq API.
 
-Live Demo: [https://laurita003.github.io/lumina-code-ki/](https://lumina-code-ki-blzuvybngvappdnuwgyypna.streamlit.app/)
+Live Demo / App: *(Hier Link einfügen falls deployed, z.B. Streamlit Cloud)*
 
 ## So funktioniert's
 
-* Gib deinen Groq API-Key in der Seitenleiste ein.
-* Wähle die Programmiersprache und deinen Schwierigkeitsgrad.
-* Füge deinen Quellcode in das Textfeld ein.
-* Klicke auf "Code analysieren & verstehen".
-* Stelle interaktive Folgefragen und fasse zum Schluss dein Gelrebtes in der Lernreflexion zusammen!
+* **API-Key eingeben:** Trage deinen Groq API-Key sicher in der Seitenleiste ein.
+* **Code einfügen:** Füge deinen Quellcode oder deine Datenbankabfrage (SQL, Python, etc.) im linken Bereich ein.
+* **Modus wählen:** Wähle zwischen verschiedenen Lernmodi (Pädagogischer Mentor, Direct Debugger, Code Optimizer) und Schwierigkeitsgraden.
+* **Analysieren lassen:** Lumina analysiert deinen Code, ohne dir die Lösung auf dem Silbertablett zu servieren.
+* **Interagieren & Reflektieren:** Stelle Rückfragen im Chat und schließe die Session mit einer persönlichen Lernreflexion ab.
 
 ## Features
 
-* Modernes Glassmorphism-Design
-* Unterstützung für Python, SQL, C, C++, Java, JavaScript und TypeScript
-* Interaktiver Chat mit Gedächtnis (Session State)
-* Wahl zwischen verschiedenen Llama 3 Modellen (Groq API)
-* Integrierte Lernreflexion mit persönlichem KI-Abschlusswort
-* Sicherer Client-Key-Input
+* **Multi-Sprachen-Unterstützung:** Verfügbar auf Deutsch, Französisch, Englisch, Italienisch, Chinesisch und Spanisch.
+* **Dynamischer Day/Night-Modus:** Angenehme UI mit flexiblem Hell-/Dunkel-Design und optimierter Lesbarkeit.
+* **Chat-Historie & Auto-Save:** Automatische Speicherung alter Diskussionen mit der Möglichkeit, sie jederzeit zu laden oder zu löschen.
+* **Lernreflexions-Modul:** Geführtes Feedback und motivierende Abschlussworte des Mentors.
+* **Sicherer Umgang mit API-Keys:** Keine harten Hardcodierungen, sensible Daten bleiben geschützt.
 
 ## Verwendete Technologien
 
-* Python
-* Streamlit
-* Groq API (Llama 3)
-* CSS3 (Glassmorphism & Neon-Effekte)
+* **Python**
+* **Streamlit** (für das interaktive Web-UI)
+* **Groq API** (mit High-Performance-Modellen wie Qwen)
+* **CSS3** (für Glassmorphism-Design und Theme-Overlays)
 
 ## Über das Projekt
 
-Lumina Code KI ist ein fortschrittliches SaaS-Projekt, das entwickelt wurde, um Programmierlernern und Entwicklern ein mentorähnliches Feedback zu geben, anstatt nur fertige Lösungen zu liefern.
+Lumina Code KI ist ein Webprojekt, das entwickelt wurde, um Programmierer und Lernende dabei zu unterstützen, Code nicht nur zu korrigieren, sondern ihn wirklich zu *verstehen*. Durch den pädagogischen Ansatz fördert es eigenständiges Problemlösen.
 
 ## Lokal starten
 
-1. Repository herunterladen oder klonen.
-2. Den Projektordner in Visual Studio Code öffnen.
-3. Abhängigkeiten installieren (`pip install streamlit groq`).
-4. Die App starten (`streamlit run app.py`).
+1. Repository klonen oder herunterladen.
+2. Projektoordner in Visual Studio Code öffnen.
+3. Benötigte Pakete installieren:
+   ```bash
+   pip install streamlit groq
 
 Alternativ kann das Tool über Streamlit Cloud oder lokal ausgeführt werden.
 

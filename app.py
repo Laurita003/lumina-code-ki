@@ -1,7 +1,7 @@
 import streamlit as st
 from groq import Groq
 
-# Configuration de la page
+# Seitenkonfiguration festlegen
 st.set_page_config(
     page_title="Lumina Code KI",
     page_icon="✨",
@@ -9,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- INITIALISATION DE LA SESSION & HISTORIQUE ---
+# --- INITIALISIERUNG VON SESSION & VERLAUF ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "reflection_done" not in st.session_state:
@@ -17,11 +17,11 @@ if "reflection_done" not in st.session_state:
 if "final_feedback" not in st.session_state:
     st.session_state.final_feedback = ""
 if "user_code" not in st.session_state:
-    st.session_state.user_code = "SELECT vorname, nachname, email\nFROM kunden\nWHERE status = 'aktiv'\nORDER BY nachname\nGOUROP BY stadt;"
+    st.session_state.user_code = ""
 if "saved_sessions" not in st.session_state:
     st.session_state.saved_sessions = []
 
-# --- DICTIONNAIRE DES LANGUES ÉTENDU ---
+# --- ERWEITERTES SPRACHWÖRTERBUCH ---
 texts = {
     "Français": {
         "api_label": "🔑 Clé API Groq :", "model_label": "🤖 Modèle IA :", "mode_label": "🧠 Mode d'apprentissage :",
@@ -146,7 +146,7 @@ texts = {
     }
 }
 
-# --- SIDEBAR POUR LES PARAMÈTRES ET HISTORIQUE ---
+# --- SIDEBAR FÜR EINSTELLUNGEN UND VERLAUF ---
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; color: #6366f1;'>⚡ Lumina Control</h2>", unsafe_allow_html=True)
     st.markdown("---")
@@ -200,7 +200,7 @@ with st.sidebar:
     else:
         st.warning(t["status_warn"])
 
-# --- CONFIGURATION DES COULEURS (SIDEBAR TOUJOURS BLANCHE, CORPS SOMBRE EN MODE NUIT) ---
+# --- FARBKONFIGURATION (SIDEBAR IMMER HELL, BEREICH IM DUNKELMODUS DUNKEL) ---
 if is_dark:
     bg_gradient = "linear-gradient(135deg, #050811 0%, #0f172a 50%, #020617 100%)"
     text_color = "#ffffff"
@@ -310,7 +310,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- EN TÊTE ---
+# --- KOPFBEREICH ---
 st.markdown(f"""
     <div class="hero-container">
         <h1 class="main-title">{t["hero_title"]}</h1>
@@ -318,7 +318,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# --- CORPS EN COLONNES ---
+# --- HAUPTBEREICH IN SPALTEN ---
 col_left, col_right = st.columns([1, 1], gap="large")
 
 with col_left:
@@ -393,7 +393,7 @@ with col_right:
             except Exception as e:
                 st.error(f"Error: {e}")
 
-    # Historique du chat
+    # Chatverlauf anzeigen
     if len(st.session_state.messages) > 1:
         for message in st.session_state.messages:
             if message["role"] == "assistant":
@@ -403,7 +403,7 @@ with col_right:
                 with st.chat_message("user", avatar="👤"):
                     st.markdown(message["content"])
                     
-        # --- CHAMP DE SAISIE DE SUIVI POUR POSER DES QUESTIONS (RÉTABLI) ---
+        # --- NACHFRAGEFELD FÜR WEITERE FRAGEN ---
         if groq_api_key and not st.session_state.reflection_done:
             if follow_up := st.chat_input(t["chat_input_ph"]):
                 st.session_state.messages.append({"role": "user", "content": follow_up})
@@ -424,7 +424,7 @@ with col_right:
                 except Exception as e:
                     st.error(f"Error: {e}")
 
-        # --- RÉFLEXION ---
+        # --- LERNREFLEXION ---
         st.markdown("---")
         st.markdown(f"### {t['reflection_title']}")
         user_reflection = st.text_area("Reflection input:", placeholder=t["reflection_ph"], key="reflection_input", label_visibility="collapsed")

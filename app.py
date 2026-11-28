@@ -150,10 +150,10 @@ texts = {
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; color: #6366f1;'>Lumina Control</h2>", unsafe_allow_html=True)
     st.markdown("---")
-    
+
     theme_choice = st.selectbox("Thème / Theme:", ["Nuit (Dark)", "Jour (Light)"])
     is_dark = "Nuit" in theme_choice
-    
+
     lang_choice = st.selectbox("Langue / Language:", ["Français", "Deutsch", "English", "Italiano", "中文", "Español"])
 
 t = texts[lang_choice]
@@ -161,12 +161,12 @@ t = texts[lang_choice]
 with st.sidebar:
     st.markdown("---")
     groq_api_key = st.text_input(t["api_label"], type="password", placeholder="gsk_...")
-    
+
     st.markdown("---")
     selected_model = st.selectbox(t["model_label"], ["qwen/qwen3.8-27b"])
     mode = st.selectbox(t["mode_label"], t["modes"])
     level = st.select_slider(t["level_label"], options=t["levels"])
-    
+
     st.markdown("---")
     if st.button(t["reset_btn"]):
         st.session_state.messages = []
@@ -211,7 +211,7 @@ if is_dark:
     code_text = "#38bdf8"
     input_bg = "#1e293b"
     input_border = "#475569"
-    
+
     sidebar_bg = "#ffffff"
     sidebar_text = "#1e293b"
 else:
@@ -224,7 +224,7 @@ else:
     code_text = "#0284c7"
     input_bg = "#ffffff"
     input_border = "#cbd5e1"
-    
+
     sidebar_bg = "#f1f5f9"
     sidebar_text = "#1e293b"
 
@@ -233,7 +233,7 @@ st.markdown(f"""
     .stApp {{
         background: {bg_gradient};
     }}
-    
+
     [data-testid="stSidebar"] {{
         background-color: {sidebar_bg} !important;
     }}
@@ -268,8 +268,8 @@ st.markdown(f"""
         margin-bottom: 20px;
     }}
 
-    .glass-card *, .stApp p:not([data-testid="stSidebar"] p), .stApp span:not([data-testid="stSidebar"] span), .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, 
-    div[data-testid="stMarkdownContainer"] *, 
+    .glass-card *, .stApp p:not([data-testid="stSidebar"] p), .stApp span:not([data-testid="stSidebar"] span), .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+    div[data-testid="stMarkdownContainer"] *,
     .stChatMessage * {{
         color: {text_color} !important;
     }}
@@ -290,6 +290,10 @@ st.markdown(f"""
         padding: 2px 6px;
         border-radius: 4px;
         font-size: 0.9em;
+    }}
+
+    div[data-testid="stAlert"] * {{
+        color: #0f172a !important;
     }}
 
     .stButton>button {{
@@ -326,13 +330,13 @@ with col_left:
     st.markdown(f"### {t['card_code_title']}")
     language = st.selectbox(t["lang_label"], ["SQL", "Python", "C", "C++", "Java", "JavaScript", "TypeScript"])
     st.session_state.user_code = st.text_area("Code input:", height=250, value=st.session_state.user_code, label_visibility="collapsed")
-    
+
     analyze_btn = st.button(t["analyze_btn"])
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_right:
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    
+
     col_chat_head1, col_chat_head2 = st.columns([2, 1])
     with col_chat_head1:
         st.markdown(f"### {t['card_chat_title']}")
@@ -352,9 +356,9 @@ with col_right:
             st.session_state.final_feedback = ""
             st.session_state.user_code = ""
             st.rerun()
-            
+
     st.markdown("---")
-    
+
     if analyze_btn:
         if not groq_api_key:
             st.error(t["err_no_key"])
@@ -363,33 +367,33 @@ with col_right:
         else:
             try:
                 client = Groq(api_key=groq_api_key)
-                
+
                 with st.spinner(t["spinner_analyze"]):
                     system_prompt = f"""
-                    You are 'Lumina Code KI', an educational code mentor. 
-                    Your goal is to help the student ({level}) understand their {language} code/query in mode '{mode}', 
-                    without giving away the direct solution on a silver platter. Give constructive feedback, 
+                    You are 'Lumina Code KI', an educational code mentor.
+                    Your goal is to help the student ({level}) understand their {language} code/query in mode '{mode}',
+                    without giving away the direct solution on a silver platter. Give constructive feedback,
                     explain logic errors or optimization possibilities and offer prompts for thought. Respond in {lang_choice}.
                     """
-                    
+
                     initial_message = f"Analyze this code:\n\n{st.session_state.user_code}"
-                    
+
                     st.session_state.messages = [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": initial_message}
                     ]
                     st.session_state.reflection_done = False
                     st.session_state.final_feedback = ""
-                    
+
                     chat_completion = client.chat.completions.create(
                         messages=st.session_state.messages,
                         model=selected_model,
                         temperature=0.3,
                     )
-                    
+
                     ai_response = chat_completion.choices[0].message.content
                     st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                    
+
             except Exception as e:
                 st.error(f"Error: {e}")
 
@@ -402,14 +406,14 @@ with col_right:
             elif message["role"] == "user" and message["content"] != f"Analyze this code:\n\n{st.session_state.user_code}":
                 with st.chat_message("user"):
                     st.markdown(message["content"])
-                    
+
         # --- NACHFRAGEFELD FÜR WEITERE FRAGEN ---
         if groq_api_key and not st.session_state.reflection_done:
             if follow_up := st.chat_input(t["chat_input_ph"]):
                 st.session_state.messages.append({"role": "user", "content": follow_up})
                 with st.chat_message("user"):
                     st.markdown(follow_up)
-                    
+
                 try:
                     client = Groq(api_key=groq_api_key)
                     with st.spinner(t["spinner_think"]):
@@ -428,7 +432,7 @@ with col_right:
         st.markdown("---")
         st.markdown(f"### {t['reflection_title']}")
         user_reflection = st.text_area("Reflection input:", placeholder=t["reflection_ph"], key="reflection_input", label_visibility="collapsed")
-        
+
         if st.button(t["reflection_btn"]):
             if not user_reflection.strip():
                 st.warning(t["reflection_warn"])
@@ -452,7 +456,7 @@ with col_right:
                         st.session_state.reflection_done = True
                 except Exception as e:
                     st.error(f"Error: {e}")
-                    
+
         if st.session_state.reflection_done and st.session_state.final_feedback:
             st.success(t["success_feedback"])
             st.info(st.session_state.final_feedback)
